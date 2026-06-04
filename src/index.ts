@@ -5,6 +5,14 @@ import { handlerHits } from './api/handlerHits.js';
 import { handlerHitsReset } from './api/handlerHitsReset.js';
 import { handlerValidateChirp } from './api/handlerValidateChirp.js';
 import { errorHandler } from './api/errorHandler.js';
+import postgres from "postgres";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { drizzle } from "drizzle-orm/postgres-js";
+import { config } from './config.js';
+import { handlerCreateUser } from './api/handlerCreateUser.js';
+
+const migrationClient = postgres(config.db.url, { max: 1 });
+await migrate(drizzle(migrationClient), config.db.migrationConfig);
 
 const app = express();
 const PORT = 8080;
@@ -17,6 +25,7 @@ app.get("/admin/metrics", handlerHits);
 app.post("/admin/reset", handlerHitsReset);
 app.get("/api/healthz", handlerReadines);
 app.post("/api/validate_chirp", handlerValidateChirp);
+app.post("/api/users", handlerCreateUser);
 
 app.use(errorHandler);
 

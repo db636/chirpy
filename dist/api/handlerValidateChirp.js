@@ -8,11 +8,6 @@ export async function handlerValidateChirp(req, res) {
     const maxChirpLength = 140;
     if (params.body.length > maxChirpLength) {
         throw new BadRequestError('Chirp is too long. Max length is 140');
-        // res.status(400).json({
-        //   error: "Bad Request",
-        // });
-        // respondWithError(res, 400, "Chirp is too long");
-        // return;
     }
     let formmatedBody = '';
     let temp = '';

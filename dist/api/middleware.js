@@ -1,6 +1,6 @@
-import { config } from '../config.js';
+import { config } from "../config.js";
 export function middlewareMetricsInc(req, res, next) {
-    config.fileserverHits = config.fileserverHits + 1;
+    config.api.fileserverHits = config.api.fileserverHits + 1;
     next();
 }
 export function middlewareLogResponses(req, res, next) {

@@ -3,7 +3,7 @@
 // 403 Forbidden
 // 404 Not Found
 export function errorHandler(err, req, res, next) {
-    console.error('aaaaa', err);
+    console.error(err);
     if (err instanceof BadRequestError) {
         res.status(400).json({
             error: err.message
