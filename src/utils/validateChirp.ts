@@ -1,4 +1,4 @@
-import { BadRequestError } from '../api/errorHandler.js';
+import { BadRequestError } from '../api/errors.js';
 
 const WORDS = ['kerfuffle', 'sharbert', 'fornax']
 const replacer = '****'

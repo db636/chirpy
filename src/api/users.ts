@@ -1,4 +1,3 @@
-
 import { Request, Response } from "express";
 import { createUser } from '../db/queries/users.js';
 
