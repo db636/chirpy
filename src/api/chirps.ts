@@ -1,23 +1,25 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 
 import { respondWithJSON } from "./json.js";
 import { validateChirp } from '../utils/validateChirp.js';
 import { createChirp, getChirps, getChirp } from '../db/queries/chirps.js';
-import { error } from 'node:console';
+import { getBearerToken, validateJWT } from '../utils/auth.js';
+import { config } from '../config.js';
 
+export async function createChirpHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    const token = getBearerToken(req)
+    const userId = validateJWT(token, config.api.jwtSecret)
 
-export async function createChirpHandler(req: Request, res: Response) {
-  type parameters = {
-    body: string;
-    userId: string;
-  };
+    const { body }: { body: string } = req.body;
 
-  const params: parameters = req.body;
+    const formmatedBody = validateChirp(body)
 
-  const formmatedBody = validateChirp(params.body)
-
-  const chirp = await createChirp({ ...params, body: formmatedBody })
-  respondWithJSON(res, 201, chirp)
+    const chirp = await createChirp({ userId, body: formmatedBody })
+    respondWithJSON(res, 201, chirp)
+  } catch(err) {
+    next(err)
+  }
 }
 
 export async function getChirpsHandler(req: Request, res: Response) {

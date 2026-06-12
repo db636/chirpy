@@ -1,8 +1,9 @@
+import { Request } from "express";
 import argon2 from "argon2";
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 
-import { UserNotAuthenticatedError } from "../api/errors.js";
+import { UserNotAuthenticatedError, UnauthorizedError } from "../api/errors.js";
 
 const TOKEN_ISSUER = "chirpy";
 
@@ -55,4 +56,15 @@ export function validateJWT(tokenString: string, secret: string) {
   }
 
   return decoded.sub;
+}
+
+export function getBearerToken(req: Request): string {
+  const token = req.get("Authorization");
+  const tokenStr = token?.replace('Bearer ', '');
+
+  if (!tokenStr) {
+    throw new UnauthorizedError("No Authorization provided");
+  }
+
+  return tokenStr
 }

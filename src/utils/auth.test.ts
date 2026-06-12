@@ -1,11 +1,13 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, vi } from "vitest";
+import type { Request } from "express";
 import {
   hashPassword,
   checkPasswordHash,
   makeJWT,
   validateJWT,
+  getBearerToken,
 } from "./auth.js";
-import { UserNotAuthenticatedError } from "../api/errors.js";
+import { UnauthorizedError, UserNotAuthenticatedError } from "../api/errors.js";
 
 describe("Password Hashing", () => {
   const password1 = "correctPassword123!";
@@ -69,5 +71,17 @@ describe("JWT Functions", () => {
     expect(() => validateJWT(validToken, wrongSecret)).toThrow(
       UserNotAuthenticatedError,
     );
+  });
+
+  it("should throw an error when the token is not provided in Authorization header", () => {
+    const req = { get: vi.fn().mockReturnValue(undefined) } as unknown as Request;
+    expect(() => getBearerToken(req)).toThrow(UnauthorizedError);
+  });
+
+  it("should return the token from the Authorization header", () => {
+    const token = 'test123';
+    const req = { get: vi.fn().mockReturnValue(`Bearer ${token}`) } as unknown as Request;
+    const result = getBearerToken(req);
+    expect(result).toBe(token);
   });
 });

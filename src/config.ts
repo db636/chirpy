@@ -19,7 +19,8 @@ export type DBConfig = {
 export type APIConfig = {
   fileserverHits: number;
   dbURL: string;
-  paltform: string
+  paltform: string;
+  jwtSecret: string;
 }
 
 export type Config = {
@@ -35,7 +36,8 @@ export const config: Config = {
   api: {
     fileserverHits: 0,
     dbURL: envOrThrow("DB_URL"),
-    paltform: envOrThrow("PLATFORM")
+    paltform: envOrThrow("PLATFORM"),
+    jwtSecret: envOrThrow("JWT_SECRET")
   },
   db: {
     url: envOrThrow("DB_URL"),
