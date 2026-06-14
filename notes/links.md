@@ -1,0 +1,1 @@
+[JWT.io ](https://www.jwt.io/) is a great tool playing around with them and learning how they work.
