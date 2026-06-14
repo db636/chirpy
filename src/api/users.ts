@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
 import { createUser, getUserByEmail } from '../db/queries/users.js';
-import { checkPasswordHash, hashPassword, makeJWT } from '../utils/auth.js';
+import { checkPasswordHash, getBearerToken, hashPassword, makeJWT, makeRefreshToken } from '../utils/auth.js';
 import { config } from '../config.js';
 import { UserResponse } from "../db/schema.js";
 import { respondWithJSON } from './json.js';
+import { createRefreshToken, getRefreshToken, getUserFromRefreshToken, revokeRefreshToken } from '../db/queries/refreshTokens.js';
+import { UnauthorizedError } from './errors.js';
 
 export async function handlerCreateUser(req: Request, res: Response) {
   const email = req.body.email;
@@ -17,10 +19,11 @@ export async function handlerCreateUser(req: Request, res: Response) {
   respondWithJSON(res, 201, userToRes)
 }
 
+const JWT_EXPIRATION_TIME = 60 * 60 // 1h default
+const RT_EXPIRATION_TIME = 60 * 60 * 24 * 60 // 60 days
 export async function handlerLogin(req: Request, res: Response) {
   const email = req.body.email;
   const password = req.body.password;
-  const expiresInSeconds = req.body.expiresInSeconds ?? 60 * 60; // 1h default
 
   if (!email) {
     respondWithJSON(res, 400, {error: "Bad request"})
@@ -28,17 +31,46 @@ export async function handlerLogin(req: Request, res: Response) {
 
   try {
     const user = await getUserByEmail(email)
+    const refreshToken = await makeRefreshToken()
+    await createRefreshToken({
+      userId: user.id,
+      token: refreshToken,
+      expiresAt: new Date(new Date().getTime() + RT_EXPIRATION_TIME * 1000)
+    })
     
     const { hashedPassword, ...userRest} = user ?? {}
 
     const isValidPwd = await checkPasswordHash(password, user.hashedPassword)
     if (isValidPwd) {
-      const token = makeJWT(user.id, expiresInSeconds, config.api.jwtSecret)
-      respondWithJSON(res, 200, {...userRest, token})
+      const token = makeJWT(user.id, JWT_EXPIRATION_TIME, config.api.jwtSecret)
+      respondWithJSON(res, 200, {...userRest, token, refreshToken})
     } else {
       throw new Error()
     }
   } catch {
     respondWithJSON(res, 401, {error: "Unauthorized"})
   }
+}
+
+export async function handlerRefreshToken(req: Request, res: Response) {
+  const token = getBearerToken(req)
+  const user = await getUserFromRefreshToken(token)
+
+  if (!user) {
+    throw new UnauthorizedError('Invalid token')
+  }
+
+  const accessToken = makeJWT(user.id, JWT_EXPIRATION_TIME, config.api.jwtSecret)
+  respondWithJSON(res, 200, { token: accessToken })
+}
+
+export async function handlerRevokeRefreshToken(req: Request, res: Response) {
+  const token = getBearerToken(req)
+  
+  if (!token) {
+    throw new UnauthorizedError('Invalid token')
+  }
+
+  await revokeRefreshToken(token)
+  respondWithJSON(res, 204, {})
 }

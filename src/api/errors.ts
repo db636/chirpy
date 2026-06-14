@@ -16,7 +16,7 @@ export function errorHandler(
     res.status(400).json({
       error: err.message
     });
-  } else if (err instanceof UnauthorizedError) {
+  } else if (err instanceof UnauthorizedError || err instanceof UserNotAuthenticatedError) {
     res.status(401).json({
       error: err.message
     });

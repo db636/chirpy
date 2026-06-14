@@ -2,6 +2,7 @@ import { Request } from "express";
 import argon2 from "argon2";
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
+import { randomBytes } from "crypto";
 
 import { UserNotAuthenticatedError, UnauthorizedError } from "../api/errors.js";
 
@@ -67,4 +68,9 @@ export function getBearerToken(req: Request): string {
   }
 
   return tokenStr
+}
+
+export async function makeRefreshToken() {
+  const buf = await randomBytes(256);
+  return buf.toString('hex');
 }
