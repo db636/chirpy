@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { createUser, getUserByEmail } from '../db/queries/users.js';
-import { checkPasswordHash, getBearerToken, hashPassword, makeJWT, makeRefreshToken } from '../utils/auth.js';
+import { createUser, getUserByEmail, updateUser } from '../db/queries/users.js';
+import { checkPasswordHash, getBearerToken, hashPassword, makeJWT, makeRefreshToken, validateJWT } from '../utils/auth.js';
 import { config } from '../config.js';
 import { UserResponse } from "../db/schema.js";
 import { respondWithJSON } from './json.js';
-import { createRefreshToken, getRefreshToken, getUserFromRefreshToken, revokeRefreshToken } from '../db/queries/refreshTokens.js';
+import { createRefreshToken, getUserFromRefreshToken, revokeRefreshToken } from '../db/queries/refreshTokens.js';
 import { UnauthorizedError } from './errors.js';
 
 export async function handlerCreateUser(req: Request, res: Response) {
@@ -73,4 +73,18 @@ export async function handlerRevokeRefreshToken(req: Request, res: Response) {
 
   await revokeRefreshToken(token)
   respondWithJSON(res, 204, {})
+}
+
+export async function handlerUpdateUser(req: Request, res: Response) {
+  const token = getBearerToken(req)
+  const userId = validateJWT(token, config.api.jwtSecret)
+  const email = req.body.email;
+  const password = req.body.password;
+  const hashedPwd = await hashPassword(password)
+  const user = await updateUser(userId, { email, hashedPassword: hashedPwd })
+  const { hashedPassword, ...userRest} = user ?? {}
+
+  const userToRes: UserResponse = userRest
+
+  respondWithJSON(res, 200, userToRes)
 }

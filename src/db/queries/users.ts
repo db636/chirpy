@@ -11,6 +11,15 @@ export async function createUser(user: NewUser) {
   return result;
 }
 
+export async function updateUser(id: string, data: Pick<NewUser, 'email' | 'hashedPassword'>) {
+  const [result] = await db
+    .update(users)
+    .set(data)
+    .where(eq(users.id, id))
+    .returning();
+  return result;
+}
+
 export async function getUserByEmail(email: string) {
   const [result] = await db
     .select()
