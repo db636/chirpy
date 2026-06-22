@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { createUser, getUserByEmail, updateUser } from '../db/queries/users.js';
+import { addUserToChirpyRed, createUser, getUserByEmail, updateUser } from '../db/queries/users.js';
 import { checkPasswordHash, getBearerToken, hashPassword, makeJWT, makeRefreshToken, validateJWT } from '../utils/auth.js';
 import { config } from '../config.js';
 import { UserResponse } from "../db/schema.js";
 import { respondWithJSON } from './json.js';
 import { createRefreshToken, getUserFromRefreshToken, revokeRefreshToken } from '../db/queries/refreshTokens.js';
-import { UnauthorizedError } from './errors.js';
+import { NotFoundError, UnauthorizedError } from './errors.js';
 
 export async function handlerCreateUser(req: Request, res: Response) {
   const email = req.body.email;
@@ -87,4 +87,20 @@ export async function handlerUpdateUser(req: Request, res: Response) {
   const userToRes: UserResponse = userRest
 
   respondWithJSON(res, 200, userToRes)
+}
+
+export async function handlerPolkaWebhook(req: Request, res: Response) {
+  const event = req.body.event;
+  const data = req.body.data;
+
+  if (event === "user.upgraded" && data.userId) { 
+    const updatedUser = await addUserToChirpyRed(data.userId)
+    if (updatedUser) {
+      respondWithJSON(res, 204, {})
+    } else {
+      throw new NotFoundError('user not found')
+    }
+  } else {
+    respondWithJSON(res, 204, { message: 'event is not supported' })
+  }
 }
