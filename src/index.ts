@@ -34,7 +34,8 @@ app.post("/api/polka/webhooks", handlerPolkaWebhook);
 
 
 app.post("/api/chirps", createChirpHandler);
-app.get("/api/chirps", getChirpsHandler);
+app.get("/api/chirps/:authorId", getChirpsHandler);
+app.get("/api/chirps/", getChirpsHandler);
 app.get("/api/chirps/:chirpId", getChirpHandler);
 app.delete("/api/chirps/:chirpId", handlerChirpsDelete);
 

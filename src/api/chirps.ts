@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 
-import { respondWithError, respondWithJSON } from "./json.js";
+import { respondWithJSON } from "./json.js";
 import { validateChirp } from '../utils/validateChirp.js';
-import { createChirp, getChirps, getChirp, deleteChirp } from '../db/queries/chirps.js';
+import { createChirp, getChirps, getChirp, deleteChirp, getChirpsByAuthor } from '../db/queries/chirps.js';
 import { getBearerToken, validateJWT } from '../utils/auth.js';
 import { config } from '../config.js';
 import { BadRequestError, NotFoundError, ForbiddenError } from './errors.js';
@@ -24,8 +24,15 @@ export async function createChirpHandler(req: Request, res: Response, next: Next
 }
 
 export async function getChirpsHandler(req: Request, res: Response) {
-  const chirp = await getChirps()
-  respondWithJSON(res, 200, chirp)
+  const authorId = req.query.authorId as string;
+
+  if (typeof authorId === "string") {
+    const chirp = await getChirpsByAuthor(authorId)
+    respondWithJSON(res, 200, chirp)
+  } else {
+    const chirp = await getChirps()
+    respondWithJSON(res, 200, chirp)
+  }
 }
 
 export async function getChirpHandler(req: Request, res: Response) {
