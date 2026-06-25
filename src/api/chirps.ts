@@ -25,12 +25,13 @@ export async function createChirpHandler(req: Request, res: Response, next: Next
 
 export async function getChirpsHandler(req: Request, res: Response) {
   const authorId = req.query.authorId as string;
+  const sort = req.query.sort
 
   if (typeof authorId === "string") {
     const chirp = await getChirpsByAuthor(authorId)
     respondWithJSON(res, 200, chirp)
   } else {
-    const chirp = await getChirps()
+    const chirp = await getChirps(sort === 'desc' ? 'desc' : 'asc')
     respondWithJSON(res, 200, chirp)
   }
 }
