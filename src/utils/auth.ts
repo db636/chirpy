@@ -74,3 +74,14 @@ export async function makeRefreshToken() {
   const buf = await randomBytes(256);
   return buf.toString('hex');
 }
+
+export function getAPIKey(req: Request) {
+  const token = req.get("Authorization");
+  const tokenStr = token?.replace('ApiKey ', '');
+
+  if (!tokenStr) {
+    throw new UnauthorizedError("No Authorization provided");
+  }
+
+  return tokenStr
+}

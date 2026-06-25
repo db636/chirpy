@@ -21,6 +21,7 @@ export type APIConfig = {
   dbURL: string;
   paltform: string;
   jwtSecret: string;
+  polkaKey: string;
 }
 
 export type Config = {
@@ -37,7 +38,8 @@ export const config: Config = {
     fileserverHits: 0,
     dbURL: envOrThrow("DB_URL"),
     paltform: envOrThrow("PLATFORM"),
-    jwtSecret: envOrThrow("JWT_SECRET")
+    jwtSecret: envOrThrow("JWT_SECRET"),
+    polkaKey: envOrThrow("POLKA_KEY")
   },
   db: {
     url: envOrThrow("DB_URL"),

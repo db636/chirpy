@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { addUserToChirpyRed, createUser, getUserByEmail, updateUser } from '../db/queries/users.js';
-import { checkPasswordHash, getBearerToken, hashPassword, makeJWT, makeRefreshToken, validateJWT } from '../utils/auth.js';
+import { checkPasswordHash, getAPIKey, getBearerToken, hashPassword, makeJWT, makeRefreshToken, validateJWT } from '../utils/auth.js';
 import { config } from '../config.js';
 import { UserResponse } from "../db/schema.js";
 import { respondWithJSON } from './json.js';
@@ -92,6 +92,9 @@ export async function handlerUpdateUser(req: Request, res: Response) {
 export async function handlerPolkaWebhook(req: Request, res: Response) {
   const event = req.body.event;
   const data = req.body.data;
+  if (getAPIKey(req) !== config.api.polkaKey) {
+    throw new UnauthorizedError("Unauthorized")
+  }
 
   if (event === "user.upgraded" && data.userId) { 
     const updatedUser = await addUserToChirpyRed(data.userId)
